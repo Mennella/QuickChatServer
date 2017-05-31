@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>TODO write content</div>
+    </body>
+    
+    <script>
+            var websocket = new WebSocket("ws://localhost:8024/QuickChatMaven/quickchat/abcd");
+            websocket.onopen = function (event) {
+//                var message = {
+//                    "action": "message",
+//                    "type": "text",
+//                    "users": [2],
+//                    "text": "ciao che fai",
+//                    "url_media" : "",
+//                    "chat": "asd",
+//                    "created_at": Date.now()
+//                }
+//                var message = {
+//                    "action": "message",
+//                    "type": "text",
+//                    "users": [],
+//                    "text": "ciao che fai",
+//                    "url_media" : "",
+//                    "chat": "e9a37bde-d85c-4aad-9983-da007c6b848e",
+//                    "created_at": Date.now()
+//                }
+//                websocket.send(JSON.stringify(message));
+//                var message = {
+//                    "action": "chatroom",
+//                    "type": "",
+//                    "users": [2,3],
+//                    "text": "chatroom",
+//                    "url_media" : "foto/foto.jpg",
+//                    "chat": "",
+//                    "created_at": Date.now()
+//                }
+//                websocket.send(JSON.stringify(message));
+//                websocket.send("testo inviato al server");
+                console.log(websocket);
+            };
+
+            websocket.onerror = function (event) {
+                console.log("conneassione caduta");
+            };
+
+            websocket.onclose = function (event) {
+                console.log("connessione chiusa");
+            };
+            websocket.onmessage = function (event) {
+                console.log(event.data);
+            }
+
+        </script> 
+</html>
