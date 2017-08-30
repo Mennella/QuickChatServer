@@ -19,6 +19,8 @@ public interface UserService {
 
     public User find(int id);
 
+    public User findByPhone(String phone);
+
     public User create(User user);
 
     public void update(User user);
@@ -28,5 +30,7 @@ public interface UserService {
     public boolean validation(String phone, String code);
 
     public Set<User> getContact(Set<String> numbers, Date date);
+
+    public boolean exists(String phone);
 
 }

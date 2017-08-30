@@ -28,6 +28,31 @@ import java.util.logging.Logger;
 public class JDBCUserService extends DBConnection implements UserService {
 
     @Override
+    public boolean exists(String phone) {
+        User user = null;
+        try {
+            this.connection = getConnection();
+            this.statement = connection.createStatement();
+
+            rs = statement.executeQuery("SELECT * FROM users WHERE phone = '" + phone + "'");
+            if (rs.next()) {
+                return true;
+            }
+            
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(JDBCMessageService.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                statement.close();
+                rs.close();
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(JDBCMessageService.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return false;
+    }
+    @Override
     public User find(String token) {
         User user = null;
         try {
@@ -93,7 +118,41 @@ public class JDBCUserService extends DBConnection implements UserService {
         System.out.println("trovato: " + user.getName());
         return user;
     }
-
+    
+    @Override
+    public User findByPhone(String phone) {
+        User user = null;
+        try {
+            this.connection = getConnection();
+            this.statement = connection.createStatement();
+            rs = statement.executeQuery("SELECT * FROM users WHERE phone = " + phone);
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String urlImg = rs.getString("url_img");
+                Boolean active_push = rs.getBoolean("active_push");
+                Set<Message> messages = new HashSet<Message>();
+                String token = rs.getString("token");
+                Date created_at = new java.util.Date(rs.getTimestamp("created_at").getTime());
+                Date updated_at = new java.util.Date(rs.getTimestamp("updated_at").getTime());
+                user = new User(id, name, token, phone, urlImg, active_push, messages, created_at, updated_at);
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(JDBCMessageService.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                statement.close();
+                rs.close();
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(JDBCMessageService.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        System.out.println("trovato: " + user.getName());
+        return user;
+    }
+    
+@Override
     public User create(User user) {
         try {
             this.connection = getConnection();
@@ -200,6 +259,7 @@ public class JDBCUserService extends DBConnection implements UserService {
         try {
             this.connection = getConnection();
             this.statement = connection.createStatement();
+            System.out.println("code: " + code + " phone: " + phone);
             rs = statement.executeQuery("SELECT * FROM codes WHERE phone= " + phone + " AND code = " + code);
             if (rs.next()) {
                 return true;
@@ -244,7 +304,7 @@ public class JDBCUserService extends DBConnection implements UserService {
                     System.out.println("fdsfsdf");
                     users.add(u);
                 }
-                statement.close();
+//                statement.close();
             }
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(JDBCMessageService.class.getName()).log(Level.SEVERE, null, ex);

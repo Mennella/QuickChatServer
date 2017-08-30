@@ -7,26 +7,21 @@ package it.univaq.disim.mobile.quickchat.api.jaxrs;
 
 import it.univaq.disim.mobile.quickchat.business.UserService;
 import it.univaq.disim.mobile.quickchat.business.impl.JDBCUserService;
-import it.univaq.disim.mobile.quickchat.business.model.Chatroom;
 import it.univaq.disim.mobile.quickchat.business.model.User;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Set;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -94,8 +89,8 @@ public class UserResource {
 
     @POST
     @Path("validation")
-    @Consumes({MediaType.MULTIPART_FORM_DATA})
-    public Response validation(@FormDataParam("number") String phone) {
+//    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    public Response validation(@FormParam("number") String phone) {
 
         System.out.println("number0: " + phone);
         int code = userService.genCode(phone);
@@ -106,12 +101,17 @@ public class UserResource {
 
     @POST
     @Path("signup")
-    @Consumes({MediaType.MULTIPART_FORM_DATA})
-    public Response signup(@Context UriInfo ctx, @FormDataParam("number") String phone, @FormDataParam("code") String code) {
+//    @Consumes({MediaType.MULTIPART_FORM_DATA})
+    public Response signup(@Context UriInfo ctx, @FormParam("number") String phone, @FormParam("code") String code) {
         if (userService.validation(phone, code)) {
             User user = new User();
-            user.setPhone(phone);
-            user = userService.create(user);
+            System.out.println("exits: " + userService.exists(phone));
+            if (!userService.exists(phone)) {
+                user.setPhone(phone);
+                user = userService.create(user);
+            } else {
+                user = userService.findByPhone(phone);
+            }
 
             return Response.ok(user).build();
         }

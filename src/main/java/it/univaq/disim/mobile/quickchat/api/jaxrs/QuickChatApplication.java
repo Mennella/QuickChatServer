@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package it.univaq.disim.mobile.quickchat.api.jaxrs;
-import it.univaq.disim.mobile.quickchat.api.jaxrs.common.ImageResize;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +27,7 @@ public class QuickChatApplication extends Application{
         c.add(ChatResource.class);
         c.add(MediaResource.class);
         c.add(UserResource.class);
+        c.add(TestResource.class);
         c.add(JacksonJsonProvider.class);
         c.add(MultiPartFeature.class);
         classes = Collections.unmodifiableSet(c);
