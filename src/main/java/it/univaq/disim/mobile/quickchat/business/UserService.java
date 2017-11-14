@@ -7,7 +7,7 @@ package it.univaq.disim.mobile.quickchat.business;
 
 import it.univaq.disim.mobile.quickchat.business.model.User;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 /**
  *
@@ -29,7 +29,7 @@ public interface UserService {
 
     public boolean validation(String phone, String code);
 
-    public Set<User> getContact(Set<String> numbers, Date date);
+    public List<User> getContact(List<String> numbers, Date date);
 
     public boolean exists(String phone);
 

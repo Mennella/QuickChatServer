@@ -49,7 +49,8 @@ public class ChatResource {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getUpdatedChatrooms(@Context UriInfo context, @QueryParam("token") String token, @QueryParam("time") long time) {
+    public Response getUpdatedChatrooms(@Context UriInfo context, @HeaderParam("token") String token, @QueryParam("time") long time) {
+        System.out.println("token " + token);
         User user = userService.find(token);
         if (user == null) {
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -111,8 +112,8 @@ public class ChatResource {
         return Response.noContent().build();
     }
 
-    @PUT
-    @Path("{chat_token: [a-zA-Z0-9 -]+ }")
+    @POST
+    @Path("update/{chat_token: [a-zA-Z0-9 -]+ }")
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     public Response updateChatrooms(
             @FormDataParam("file") InputStream file,

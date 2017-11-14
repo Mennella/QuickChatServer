@@ -16,6 +16,8 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
@@ -279,8 +281,8 @@ public class JDBCUserService extends DBConnection implements UserService {
     }
 
     @Override
-    public Set<User> getContact(Set<String> numbers, Date date) {
-        Set<User> users = new HashSet<User>();
+    public List<User> getContact(List<String> numbers, Date date) {
+        List<User> users = new LinkedList<User>();
         Statement st = null;
         PreparedStatement pres;
         ResultSet result = null;

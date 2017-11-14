@@ -20,6 +20,9 @@ import it.univaq.disim.mobile.quickchat.websocket.common.RequestMessage;
 import it.univaq.disim.mobile.quickchat.websocket.common.ResponseMessage;
 import it.univaq.disim.mobile.quickchat.websocket.common.UserSession;
 import it.univaq.disim.mobile.quickchat.websocket.common.UserSessionHandler;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -29,6 +32,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -36,6 +40,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import sun.misc.BASE64Decoder;
 
 /**
  *
@@ -51,18 +56,20 @@ public class CoreWebSocket {
 
     @OnClose
     public void onClose(Session session) {
-        System.out.println("closed");
+        System.out.println("onClose");
         sessionHandler.removeUserSession(session);
     }
 
     @OnError
     public void onError(Throwable t) {
+        System.out.println("onError");
         t.printStackTrace();
     }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("token") String token) {
-        System.out.println("opend");
+        System.out.println("onOpen");
+        session.setMaxTextMessageBufferSize(3000000);
         User user;
         user = userService.find(token);
         sessionHandler.addUserSession(session, user);
@@ -72,6 +79,8 @@ public class CoreWebSocket {
 
     @OnMessage
     public void onMessage(String payload, Session session) {
+        System.out.println("onMessage");
+        System.out.println(payload);
         try {
             ObjectMapper mapper = new ObjectMapper();
             RequestMessage rm = mapper.readValue(payload, RequestMessage.class);
@@ -83,9 +92,14 @@ public class CoreWebSocket {
             switch (rm.getAction()) {
                 case "message":
                     c = chatroomService.find(rm.getChat());
+                    System.out.println("token in message" + rm.getChat());
                     m = prepareMessage(rm, owner);
+                    recipients = c != null ? c.getParticipants() : getUsers(rm.getUsers());
+                    if(c == null){
+                        c = new Chatroom();
+                        c.setToken(rm.getChat());
+                    }
                     responseMessage = new ResponseMessage(rm.getAction(), c, m);
-                    recipients = c != null ? c.getParticipants(): getUsers(rm.getUsers());
                     recipients = sendMessage(recipients, responseMessage, owner.getName() + " ti ha inviato un messaggio");
                     if (!recipients.isEmpty()) {
                         m.setRecipients(recipients);
@@ -93,11 +107,13 @@ public class CoreWebSocket {
                     }
                     break;
                 case "chatroom":
+                    System.out.println("on message chatroom");
+
                     c = saveChat(owner, rm);
-                    for (User recipient : c.getParticipants()) {
-                        System.out.println(recipient.getId());
-                    }
-                    
+//                    for (User recipient : c.getParticipants()) {
+//                        System.out.println(recipient.getId());
+//                    }
+
                     responseMessage = new ResponseMessage("new chatroom", c, null);
                     sendMessage(c.getParticipants(), responseMessage, "Nuova chat di gruppo");
                     break;
@@ -125,7 +141,9 @@ public class CoreWebSocket {
         Set<User> users = new HashSet<User>();
         for (Integer id : su) {
             User u = userService.find(id);
-            if(u == null) throw new Exception("id non valido");
+            if (u == null) {
+                throw new Exception("id non valido");
+            }
             users.add(u);
         }
 
@@ -134,19 +152,49 @@ public class CoreWebSocket {
 
     private Chatroom saveChat(User owner, RequestMessage rm) throws Exception {
         Set<User> participants = new HashSet<User>();
-        participants.add(owner);
+//        participants.add(owner);
         participants.addAll(getUsers(rm.getUsers()));
+        
+//        for(User p: participants){
+//            System.out.println("user in participant " + p.getId());
+//        }
+        String BASE_PATH = "C:/Users/Mennella/Documents/NetBeansProjects/QuickChatWorkspace/QuickChatMaven/src/main/webapp/media/chat/" + rm.getChat() + "/icon";
 
         Chatroom c = new Chatroom();
         c.setName(rm.getText());
         c.setParticipants(participants);
         c.setUrlImg(rm.getUrl_media());
+        c.setToken(rm.getChat());
         c.setCreated_at(rm.getCreated_at());
         c.setUpdated_at(rm.getCreated_at());
 
         c = chatroomService.createChatroom(c);
 
         return c;
+    }
+
+    public static BufferedImage decodeToImage(String imageString) {
+        //        new File(BASE_PATH).mkdirs();
+//        String[] s = rm.getUrl_media().split(",");
+//        BufferedImage bi = this.decodeToImage(s[1]);
+//
+//        File f = new File(BASE_PATH + "/icon.jpg");
+//        f.createNewFile();
+//        System.out.println("path" + BASE_PATH + "/icon.jpg");
+//        ImageIO.write(bi, "jpg", f);
+
+        BufferedImage image = null;
+        byte[] imageByte;
+        try {
+            BASE64Decoder decoder = new BASE64Decoder();
+            imageByte = decoder.decodeBuffer(imageString);
+            ByteArrayInputStream bis = new ByteArrayInputStream(imageByte);
+            image = ImageIO.read(bis);
+            bis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return image;
     }
 
     private Set<User> sendMessage(Set<User> participants, ResponseMessage responseMessage, String notification) {

@@ -36,7 +36,7 @@ public class JDBCChatroomService extends DBConnection implements ChatroomService
             this.connection = getConnection();
             connection.setAutoCommit(false);
 
-            c.setToken(createToken());
+//            c.setToken(createToken());
             String sql = "INSERT INTO chatrooms ( name, url_img, token, created_at) VALUES (?,?,?,?)";
             this.ps = connection.prepareStatement(sql);
             ps.setString(1, c.getName());

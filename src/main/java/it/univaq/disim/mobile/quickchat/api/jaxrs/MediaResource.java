@@ -46,7 +46,7 @@ public class MediaResource {
     private final ImageResize imageResize = new ImageResize();
 
     @POST
-    @Path("{chat_token: [a-zA-Z0-9 -]+ }")
+    @Path("chats/{chat_token: [a-zA-Z0-9 -]+ }")
     @Consumes({MediaType.MULTIPART_FORM_DATA})
     public Response uploadMedia(
             @Context UriInfo ctx,
@@ -60,10 +60,10 @@ public class MediaResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        System.out.println("name file: " + fileDetail.getFileName());
+        System.out.println("name file: " + fileDetail.getFileName() + type);
 
         switch (type) {
-            case "image":
+            case "foto":
                 BASE_PATH += "/img/";
                 break;
             case "video":
@@ -72,6 +72,9 @@ public class MediaResource {
             case "audio":
                 BASE_PATH += "/audio";
                 break;
+            case "icon":
+                BASE_PATH += "/icon";
+                break;
             default:
                 System.out.println("not found");
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -79,7 +82,8 @@ public class MediaResource {
 
         try {
             int read = 0;
-            byte[] bytes = new byte[1024];
+            byte[] bytes = new byte[2048];
+//            byte[] bytes = new byte[1024];
             new File(BASE_PATH).mkdirs();
 
             OutputStream out = new FileOutputStream(new File(BASE_PATH + "/" + fileDetail.getFileName()));
@@ -103,17 +107,17 @@ public class MediaResource {
     public Response getPeopleMedia(@PathParam("user_id") int user_id,
             @QueryParam("token") String token,
             @QueryParam("type") String type) {
-        
+
         User u = userService.find(token);
         if (u == null) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        System.out.println("id: "+ user_id);
+        System.out.println("id: " + user_id);
         User user = userService.find(user_id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        
+
         String BASE_PATH = "C:/Users/Mennella/Documents/NetBeansProjects/QuickChatWorkspace/QuickChatMaven/src/main/webapp/media/user/" + user.getToken() + "/";
         switch (type) {
             case "icon":
@@ -125,10 +129,9 @@ public class MediaResource {
 
         return Response.status(Response.Status.BAD_REQUEST).build();
     }
-    
-    
+
     @GET
-    @Path("{chat_token: [a-zA-Z0-9 -]+ }/{file_name: [a-zA-Z0-9 _ .]+}")
+    @Path("chats/{chat_token: [a-zA-Z0-9 -]+ }/{file_name: [a-zA-Z0-9 _ .]+}")
 //    @Path("{chat_token: [a-zA-Z0-9 -]+ }/{file_name: [a-zA-Z0-9 _ .]}")
     @Produces("application/octet-stream")
     public Response getMedia(@PathParam("chat_token") String chat_token,
@@ -147,27 +150,32 @@ public class MediaResource {
             case "iconR":
                 BASE_PATH += "/icon/";
                 return getResizeImage(BASE_PATH, filename);
-            case "imageR":
+            case "fotoR":
                 BASE_PATH += "/img/";
                 return getResizeImage(BASE_PATH, filename);
-            case "image":
+            case "foto":
                 BASE_PATH += "/img/" + filename;
                 return getMedia(BASE_PATH);
             case "video":
-                BASE_PATH += "/video" + filename;
+                BASE_PATH += "/video/" + filename;
                 return getMedia(BASE_PATH);
             case "audio":
-                BASE_PATH += "/audio" + filename;
+                BASE_PATH += "/audio/" + filename;
                 return getMedia(BASE_PATH);
         }
-
+        System.out.println("ciao");
         return Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     private Response getResizeImage(String path, String filename) {
+        System.out.println("path to resize image people " + path + filename);
         new File(path).mkdirs();
         try {
             BufferedImage originalImage = ImageIO.read(new File(path + filename));
+            if (originalImage == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
             int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
             File f = File.createTempFile(filename, getExtension(filename));
 //            File f = new File("C:/Users/Mennella/Documents/NetBeansProjects/QuickChatWorkspace/QuickChatMaven/src/main/webapp/media/tmp/" + filename);
@@ -191,7 +199,7 @@ public class MediaResource {
         if (f.exists() && !f.isDirectory()) {
             return Response.ok(f).build();
         }
-        System.out.println("nonn trovato: "+ path);
+        System.out.println("nonn trovato: " + path);
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
